@@ -1,0 +1,11 @@
+title: 0xhkk's Notes
+theme: minima
+
+# Keep URLs stable and simple.
+permalink: /:categories/:year/:month/:day/:title/
+
+# Minima reads these automatically, but keeping them explicit is clearer.
+markdown: kramdown
+highlighter: rouge
+
+
