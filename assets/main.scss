@@ -1,0 +1,21 @@
+---
+---
+
+@import "minima";
+
+/* Keep wide ASCII diagrams readable by enabling horizontal scrolling. */
+.post-content pre,
+.post-content .highlight,
+.post-content div.highlighter-rouge {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Reduce code block size slightly so more content fits on screen. */
+.post-content pre,
+.post-content code {
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+
