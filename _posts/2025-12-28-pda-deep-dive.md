@@ -20,7 +20,7 @@ const userUsdcAccount = getAssociatedTokenAddress(
 );
 ```
 
-你有没有想过：**这个地址是怎么"算"出来的？**
+有没有想过：**这个地址是怎么"算"出来的？**
 
 答案就是今天的主角：**PDA (Program Derived Address)**。
 
@@ -32,7 +32,7 @@ let ata_address = PDA::derive(
 );
 ```
 
-是的，你用 `getAssociatedTokenAddress(...)` 算出来的这个地址（也就是 **ATA：Associated Token Account**），本质上就是一个 **PDA**！
+是的，用 `getAssociatedTokenAddress(...)` 算出来的这个地址（也就是 **ATA：Associated Token Account**），本质上就是一个 **PDA**
 
 > ⚠️ 小心一个常见误解：**并不是所有 Token Account 都是 PDA**。
 > - **ATA** 是 *由 Associated Token Program 按固定 seeds 派生出来的 PDA 地址*（可预测、可计算）。
@@ -65,15 +65,15 @@ let (pool_address, bump) = Pubkey::find_program_address(
 
 ```
 普通账户的逻辑：
-┌─────────────────────────────────────────┐
-│  私钥 (Secret Key)                       │
-│    │                                     │
-│    ▼                                     │
-│  公钥 (Public Key) ←── 这就是你的"地址"   │
-│    │                                     │
-│    ▼                                     │
-│  签名 (Signature) ←── 证明"我是主人"      │
-└─────────────────────────────────────────┘
+─────────────────────────────────────────
+  私钥 (Secret Key)                      
+    │                                     
+   ▼                                     
+  公钥 (Public Key) ←── 这就是你的"地址"   
+    │                                     
+    ▼                                     
+  签名 (Signature) ←── 证明"我是主人"      
+─────────────────────────────────────────
 ```
 
 这套体系对普通用户来说完美无缺。但对于 **智能合约（Program）** 来说，问题来了：
@@ -88,7 +88,7 @@ let (pool_address, bump) = Pubkey::find_program_address(
 
 > "Uniswap 合约也没有私钥，它怎么管理池子里的钱？"
 
-答案是：**EVM 和 Solana 的账户模型完全不同！**
+答案是：**EVM 和 Solana 的账户模型完全不同**
 
 | EVM 模型（以太坊） | Solana 模型 |
 |---|---|
@@ -119,7 +119,7 @@ let (pool_address, bump) = Pubkey::find_program_address(
 2. **链上查询？** → 太慢，而且可能还没创建
 3. **用户自己记住？** → 太麻烦，容易出错
 
-**解决方案：PDA！**
+**解决方案：PDA**
 
 ```rust
 // 用确定性的方式"算出"地址
@@ -128,7 +128,7 @@ let alice_usdc_account = PDA::derive(
     program_id: associated_token_program
 );
 
-// 任何人都能算出 Alice 的 USDC 账户地址！
+// 任何人都能算出 Alice 的 USDC 账户地址
 // 不需要链上查询，不需要 Alice 告诉你
 ```
 
@@ -165,13 +165,13 @@ PDA = **Program Derived Address（程序派生地址）**
 - **普通方案**：给金库配一把钥匙（私钥）。但钥匙可能丢、可能被偷。
 - **PDA 方案**：金库用 **银行的印章** 来控制。只有银行本身（程序）能盖章，没有"钥匙"这个东西。
 
-![Program ID + seeds 派生 PDA（只有程序能"签名"）](/assets/pda/05-pda-derive.png)
+<img src="/assets/pda/05-pda-derive.png" alt="Program ID + seeds 派生 PDA（只有程序能签名）" width="500">
 
 ---
 
 ## 第三层：PDA 源代码揭秘 —— find_program_address 怎么工作的？
 
-理解了 PDA 的概念，让我们看看它是怎么"算"出来的：
+理解了 PDA 的概念，看看它是怎么"算"出来的：
 
 ```rust
 // 来自 Solana SDK: solana_program/src/pubkey.rs (简化版)
@@ -190,7 +190,7 @@ pub fn find_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> (Pubkey, u8
         // 尝试创建 PDA
         match Self::create_program_address(&seeds_with_bump, program_id) {
             Ok(address) => {
-                // 成功！这个地址在曲线外
+                // 成功，这个地址在曲线外
                 return (address, bump_seed[0]);
             }
             Err(_) => {
@@ -226,7 +226,7 @@ pub fn create_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> Result<Pu
     
     // 4. 检查是否在椭圆曲线上
     if pubkey.is_on_curve() {
-        return Err(PubkeyError::InvalidSeeds);  // 有私钥，不能用！
+        return Err(PubkeyError::InvalidSeeds);  // 有私钥，不能用
     }
     
     Ok(pubkey)
@@ -236,7 +236,7 @@ pub fn create_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> Result<Pu
 
 **核心流程：**
 
-![findProgramAddress / bump 递减搜索流程](/assets/pda/11-find-program-address-flow.png)
+<img src="/assets/pda/11-find-program-address-flow.png" alt="findProgramAddress / bump 递减搜索流程" width="550">
 
 ---
 
@@ -248,19 +248,19 @@ pub fn create_program_address(seeds: &[&[u8]], program_id: &Pubkey) -> Result<Pu
 
 回忆一下：PDA 必须在椭圆曲线的 **外面**（没有对应私钥）。
 
-但问题是：当你用 `seeds + program_id` 计算地址时，结果可能恰好落在曲线 **上**！
+但问题是：当你用 `seeds + program_id` 计算地址时，结果可能恰好落在曲线 **上**
 
 ```
 第一次尝试：
-hash(seeds + program_id + 255) → 0x1234...（在曲线上！有私钥！）❌
+hash(seeds + program_id + 255) → 0x1234...（在曲线上，有私钥）❌
 
 第二次尝试：
-hash(seeds + program_id + 254) → 0x5678...（在曲线上！有私钥！）❌
+hash(seeds + program_id + 254) → 0x5678...（在曲线上，有私钥）❌
 
 第三次尝试：
-hash(seeds + program_id + 253) → 0x9ABC...（曲线外！没私钥！）✅
+hash(seeds + program_id + 253) → 0x9ABC...（曲线外，没私钥）✅
                           ↑
-                      这个 253 就是 Bump！
+                      这个 253 就是 Bump
 ```
 
 ### 比喻：找停车位
@@ -378,23 +378,23 @@ pub mod seeds {
 
 ```rust
 // 来自 Meteora: const_pda.rs
-// 编译时就算好 PDA 和 Bump！
+// 编译时就算好 PDA 和 Bump
 const POOL_AUTHORITY_AND_BUMP: ([u8; 32], u8) = ed25519::derive_program_address(
     &[POOL_AUTHORITY_PREFIX],
     &crate::ID_CONST.to_bytes(),
 );
 
 pub const ID: Pubkey = ...;
-pub const BUMP: u8 = POOL_AUTHORITY_AND_BUMP.1;  // 编译时常量！
+pub const BUMP: u8 = POOL_AUTHORITY_AND_BUMP.1;  // 编译时常量
 ```
 
 **等等，`const` 是编译时还是运行时？**
 
-这是个关键问题！答案是：**编译时！**
+答案是：**编译时**
 
 - **编译时**（`cargo build-sbf`）：`ed25519::derive_program_address()` 运行，计算出 PDA 地址和 Bump，结果被"烧录"到 `.so` 文件里
 - **部署时**（`solana program deploy`）：上传 `.so` 文件，PDA 地址已经确定
-- **运行时**（用户调用 Swap）：直接用编译好的常量，不需要再算！
+- **运行时**（用户调用 Swap）：直接用编译好的常量，不需要再算
 
 **关键：const fn（常量函数）**
 
@@ -406,7 +406,7 @@ pub const fn derive_program_address(
     seeds: &[&[u8]], 
     program_id: &[u8; 32]
 ) -> ([u8; 32], u8) {
-    // 编译器会在编译时执行这个函数！
+    // 编译器会在编译时执行这个函数
 }
 ```
 
@@ -471,19 +471,17 @@ pub pool: AccountLoader<'info, Pool>,
 
 **为什么要 max/min 排序？**
 
-这是个很聪明的设计！
-
 ```rust
 // 假设：
-// token_a = "USDC" (地址: EPjFWdd5...)
-// token_b = "SOL"  (地址: So11111...)
+token_a = "USDC" (地址: EPjFWdd5...)
+token_b = "SOL"  (地址: So11111...)
 
 // 如果不排序，会产生两个不同的池子地址：
-// seeds: ["pool", config, USDC, SOL]  → 池子 A
-// seeds: ["pool", config, SOL, USDC]  → 池子 B  ← 同一个交易对，两个池子！
+/seeds: ["pool", config, USDC, SOL]  → 池子 A
+seeds: ["pool", config, SOL, USDC]  → 池子 B  ← 同一个交易对，两个池子
 
 // 用 max/min 排序后：
-// seeds: ["pool", config, max(USDC,SOL), min(USDC,SOL)]  → 永远同一个池子！
+seeds: ["pool", config, max(USDC,SOL), min(USDC,SOL)]  → 永远同一个池子
 ```
 
 这保证了 **同一个交易对只有唯一的池子地址**。
@@ -500,7 +498,7 @@ pub pool: AccountLoader<'info, Pool>,
         pool.key().as_ref(),            // 属于哪个池子
     ],
     token::mint = token_a_mint,
-    token::authority = pool_authority,  // 由 pool_authority PDA 控制！
+    token::authority = pool_authority,  // 由 pool_authority PDA 控制
     token::token_program = token_a_program,
     payer = payer,
     bump,
@@ -534,7 +532,7 @@ pub struct Pool {
 }
 ```
 
-![Pool 记录 Vault 地址；Vault 由 authority 控制](/assets/pda/07-pool-and-vaults.png)
+<img src="/assets/pda/07-pool-and-vaults.png" alt="Pool 记录 Vault 地址；Vault 由 authority 控制" width="550">
 
 ### 5.5 厘清关系：Pool vs Pool Authority vs Vault
 
@@ -565,7 +563,7 @@ pub struct Pool {
 
 **一句话总结：**
 
-> Pool 和 Pool Authority 没有直接关系！
+> Pool 和 Pool Authority 没有直接关系
 > - Pool 只管数据（配置）
 > - Pool Authority 只管签名（控制资金）
 > - 它们通过 Vault 间接关联：Vault 的 seeds 含 pool，但 owner 是 pool_authority
@@ -599,7 +597,7 @@ pub struct Pool {
    ❓ 谁来签名？
    │
    ▼
-6. Pool Authority (PDA) 签名！
+6. Pool Authority (PDA) 签名
    seeds: ["pool_authority"] + bump
    │
    ▼
@@ -607,7 +605,7 @@ pub struct Pool {
    "这个 PDA 确实属于 Meteora 程序，允许转账"
    │
    ▼
-8. 交易完成！
+8. 交易完成
 ```
 
 **关键点：**
@@ -619,11 +617,11 @@ pub struct Pool {
 
 ## 总结
 
-![PDA 知识图谱总览](/assets/pda/09-pda-knowledge-map.png)
+<img src="/assets/pda/09-pda-knowledge-map.png" alt="PDA 知识图谱总览" width="550">
 
-### 回顾：你已经用过的 PDA
+### 回顾：已经用过的 PDA
 
-现在回头看，你会发现 **PDA 无处不在**：
+现在回头看，会发现 **PDA 无处不在**：
 
 | 场景 | Seeds | 作用 |
 |------|-------|------|
@@ -632,7 +630,7 @@ pub struct Pool {
 | **Meteora Vault** | `[token_vault, mint, pool]` | 每个池子每种代币一个金库 |
 | **Pool Authority** | `[pool_authority]` | 程序控制所有池子资金的"印章" |
 
-现在你应该明白了：**PDA 是 Solana 程序控制资产的核心机制**。
+现在应该明白了：**PDA 是 Solana 程序控制资产的核心机制**。
 
 没有 PDA，程序就无法"拥有"任何东西。有了 PDA，程序就可以：
 - ✅ 创建可预测、可计算的账户地址（ATA）
@@ -640,6 +638,6 @@ pub struct Pool {
 - ✅ 在 CPI 中"签名"转移资金（Pool Authority）
 - ✅ 实现去中心化的资产管理
 
-下一篇，我们将深入 **CPI（跨程序调用）**，揭秘 `invoke_signed` 是如何让 PDA "签名" 的。
+下一篇，将深入 **CPI（跨程序调用）**，揭秘 `invoke_signed` 是如何让 PDA "签名" 的。
 
 Happy Coding! 🚀
